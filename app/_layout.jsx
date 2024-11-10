@@ -1,12 +1,13 @@
+// app/_layout.js
 import { SplashScreen, Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
 import "../global.css";
 import { useEffect } from 'react';
+import { ProductProvider } from '../context/ProductContext';
 
 SplashScreen.preventAutoHideAsync();
 
 const RootLayout = () => {
-
   const [fontsLoaded, error] = useFonts({
     "Poppins-Bold": require("../assets/fonts/Poppins-Bold.ttf"),
     "Poppins-ExtraBold": require("../assets/fonts/Poppins-ExtraBold.ttf"),
@@ -17,17 +18,19 @@ const RootLayout = () => {
 
   useEffect(() => {
     if (error) throw error;
-
     if (fontsLoaded) SplashScreen.hideAsync();
-  }, [fontsLoaded, error])
+  }, [fontsLoaded, error]);
 
-  if(!fontsLoaded && !error) return null;
+  if (!fontsLoaded && !error) return null;
 
   return (
-    <Stack>
-      <Stack.Screen name='index' options={{ headerShown: false }} />
-    </Stack>
-  )
-}
+    <ProductProvider>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="camera" options={{ headerShown: false }} />
+      </Stack>
+    </ProductProvider>
+  );
+};
 
-export default RootLayout
+export default RootLayout;
