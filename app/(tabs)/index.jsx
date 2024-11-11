@@ -11,7 +11,7 @@ const Home = observer(() => {
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   // Получаем ProductListStore из контекста
-  const productListStore = useContext(ProductContext);
+  const { ProductListStore } = useContext(ProductContext);
 
   // Обработка изменения даты
   const showDatePicker = () => {
@@ -26,8 +26,8 @@ const Home = observer(() => {
   const formattedDate = selectedDate.toISOString().split('T')[0];
 
   // Получение продуктов и суммарных значений на выбранную дату
-  const products = productListStore.getProductsByDate(formattedDate);
-  const { calories, proteins, fats, carbs } = productListStore.getDailySummary(formattedDate);
+  const products = ProductListStore.getProductsByDate(formattedDate);
+  const { calories, proteins, fats, carbs } = ProductListStore.getDailySummary(formattedDate);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-200 p-4">

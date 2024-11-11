@@ -8,9 +8,10 @@ class Product {
     fats;
     carbs;
     weight;
+    imageLink;
     dateAdded;
 
-    constructor({ id, name, calories, proteins, fats, carbs, weight, dateAdded }) {
+    constructor({ id, name, calories, proteins, fats, carbs, weight, imageLink, dateAdded }) {
         this.id = id;
         this.name = name;
         this.calories = calories;
@@ -19,6 +20,7 @@ class Product {
         this.carbs = carbs;
         this.weight = weight;
         this.dateAdded = dateAdded;
+        this.imageLink = imageLink;
         makeAutoObservable(this);
     }
     
@@ -29,6 +31,7 @@ class Product {
         this.fats = data.fats || this.fats;
         this.carbs = data.carbs || this.carbs;
         this.weight = data.weight || this.weight;
+        this.imageLink = data.imageLink || this.imageLink;
         this.dateAdded = data.dateAdded || this.dateAdded;
     }
 }
