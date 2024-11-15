@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect } from 'react';
-import { View, Text, Alert, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, Alert, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';

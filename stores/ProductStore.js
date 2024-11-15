@@ -1,4 +1,6 @@
 import { makeAutoObservable } from "mobx";
+import 'react-native-get-random-values';
+import { v4 as uuidv4 } from 'uuid';
 
 class Product {
     id;
@@ -12,7 +14,7 @@ class Product {
     dateAdded;
 
     constructor({ id, name, calories, proteins, fats, carbs, weight, imageLink, dateAdded }) {
-        this.id = id;
+        this.id = uuidv4();
         this.name = name;
         this.calories = calories;
         this.proteins = proteins;

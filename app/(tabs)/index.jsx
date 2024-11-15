@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, Alert } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { observer } from 'mobx-react-lite';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,6 +29,13 @@ const Home = observer(() => {
   const products = ProductListStore.getProductsByDate(formattedDate);
   const { calories, proteins, fats, carbs } = ProductListStore.getDailySummary(formattedDate);
 
+  // Функция для очистки списка
+  const handleClearProducts = () => {
+    ProductListStore.clearAllProducts();
+
+    Alert.alert("Список очищен", "Все продукты были удалены!");
+  };
+
   return (
     <SafeAreaView className="flex-1 bg-gray-200 p-4">
       {/* Выбор даты */}
@@ -44,6 +51,14 @@ const Home = observer(() => {
 
       {/* Список продуктов */}
       <ProductList products={products} />
+
+      {/* Кнопка очистки списка */}
+      <TouchableOpacity 
+        onPress={handleClearProducts} 
+        className="mt-6 p-3 bg-red-500 rounded-lg"
+      >
+        <Text className="text-white text-center font-bold">Очистить список продуктов</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 });
