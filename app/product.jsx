@@ -1,38 +1,47 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, Image } from 'react-native';
+import React, { useContext, useState, useEffect } from 'react';
+import { View, Text, Alert, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-
-import { ProductContext, generateId } from '../context/ProductContext';
+import { useNavigation, useRoute } from '@react-navigation/native'; // Подключаем useRoute
+import ProductForm from '../components/ProductForm';
 import { icons } from '../constants';
-import CustomButton from '../components/CustomButton';
+import { ProductContext } from '../context/ProductContext';
 
 const Product = () => {
+  const { ProductListStore } = useContext(ProductContext); // Получаем доступ к ProductListStore
   const navigation = useNavigation();
-  const { ProductListStore, selectedProduct } = useContext(ProductContext);
+  const route = useRoute(); // Получаем параметры маршрута
 
-  const [name, setName] = useState(selectedProduct.name || '');
-  const [calories, setCalories] = useState(String(selectedProduct.calories || ''));
-  const [proteins, setProteins] = useState(String(selectedProduct.proteins || ''));
-  const [fats, setFats] = useState(String(selectedProduct.fats || ''));
-  const [carbs, setCarbs] = useState(String(selectedProduct.carbs || ''));
+  const { mode = 'create', product } = route.params || {}; // Делаем проверку на наличие параметров
+  const [loading, setLoading] = useState(false);
 
-  const handleCreateProduct = () => {
-    const newProductData = {
-      name,
-      calories: parseFloat(calories),
-      proteins: parseFloat(proteins),
-      fats: parseFloat(fats),
-      carbs: parseFloat(carbs),
-    };
-    
-    selectedProduct.updateProduct(newProductData);
-    ProductListStore.addProduct(selectedProduct);
-
-    navigation.navigate('products');
-
-    Alert.alert("Продукт создан", "Продукт успешно добавлен в список!");
+  // Функция для сохранения или обновления продукта
+  const handleSave = async (productData) => {
+    setLoading(true);
+    try {
+      if (mode === 'edit') {
+        // Если редактируем, обновляем продукт
+        await ProductListStore.updateProduct(productData); // Вам нужно добавить метод updateProduct в ProductListStore
+        Alert.alert('Успех', 'Продукт успешно обновлен!');
+      } else {
+        // Если создаем новый продукт
+        await ProductListStore.addProduct(productData);
+        Alert.alert('Успех', 'Продукт успешно добавлен!');
+      }
+      navigation.navigate('index'); // Переходим на главный экран после сохранения
+    } catch (error) {
+      Alert.alert('Ошибка', 'Не удалось сохранить продукт.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    // Если в режиме редактирования передан продукт, можно сделать дополнительные действия, например, загрузить его данные
+    if (mode === 'edit' && product) {
+      // здесь можно что-то сделать с продуктом, если нужно
+    }
+  }, [mode, product]);
 
   return (
     <SafeAreaView className="flex-1 p-5">
@@ -44,80 +53,28 @@ const Product = () => {
               position: 'absolute', 
               left: 0, 
               paddingLeft: 10,
-              padding: 10, // Увеличиваем область вокруг стрелки
+              padding: 10,
             }}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} // Увеличиваем область для клика вокруг иконки
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           >
             <Image source={icons.arrow} style={{ width: 16, height: 16 }} />
           </TouchableOpacity>
-
-          <Text className="text-lg font-bold">Создание продукта</Text>
+          <Text className="text-lg font-bold">
+            {mode === 'edit' ? 'Редактирование продукта' : 'Создание продукта'}
+          </Text>
         </View>
       </View>
 
-
-      <View className="mb-5">
-        <Text className="text-base text-gray-700 mb-2">Название продукта</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите название"
-          value={name}
-          onChangeText={setName}
+      {/* Форма */}
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <ProductForm 
+          mode={mode} 
+          initialProduct={product}  // Передаем данные для редактирования
+          onSubmit={handleSave} 
         />
-      </View>
-
-      <Text className="text-sm text-gray-600 mb-2">Введите для 100гр продукта:</Text>
-
-      <View className="mb-5">
-        <Text className="text-base text-gray-700 mb-2">🔥 ккал</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите калории"
-          keyboardType="numeric"
-          value={calories}
-          onChangeText={setCalories}
-        />
-      </View>
-
-      <View className="mb-5">
-        <Text className="text-base text-green-700 mb-2">Белки</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите белки"
-          keyboardType="numeric"
-          value={proteins}
-          onChangeText={setProteins}
-        />
-      </View>
-
-      <View className="mb-5">
-        <Text className="text-base text-orange-700 mb-2">Жиры</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите жиры"
-          keyboardType="numeric"
-          value={fats}
-          onChangeText={setFats}
-        />
-      </View>
-
-      <View className="mb-5">
-        <Text className="text-base text-blue-700 mb-2">Углеводы</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите углеводы"
-          keyboardType="numeric"
-          value={carbs}
-          onChangeText={setCarbs}
-        />
-      </View>
-
-      <CustomButton
-        title="Создать продукт"
-        handlePress={handleCreateProduct}
-        containerStyles="bg-primary my-2 w-full"
-        textStyles="text-white font-medium"
-      />
+      )}
     </SafeAreaView>
   );
 };

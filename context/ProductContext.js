@@ -18,7 +18,7 @@ export const ProductProvider = observer(({ children }) => {
   });
 
   return (
-    <ProductContext.Provider value={{ ProductListStore, selectedProduct }}>
+    <ProductContext.Provider value={{ ProductListStore: ProductListStore, selectedProduct }}>
       {children}
     </ProductContext.Provider>
   );

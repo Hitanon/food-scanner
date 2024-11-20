@@ -6,9 +6,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProductContext } from '../../context/ProductContext'; // импортируем контекст
 import Summary from '../../components/Summary';
 import ProductList from '../../components/ProductList';
+import { useNavigation } from '@react-navigation/native';
 
 const Home = observer(() => {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const navigation = useNavigation();
 
   // Получаем ProductListStore из контекста
   const { ProductListStore } = useContext(ProductContext);
@@ -29,13 +31,6 @@ const Home = observer(() => {
   const products = ProductListStore.getProductsByDate(formattedDate);
   const { calories, proteins, fats, carbs } = ProductListStore.getDailySummary(formattedDate);
 
-  // Функция для очистки списка
-  const handleClearProducts = () => {
-    ProductListStore.clearAllProducts();
-
-    Alert.alert("Список очищен", "Все продукты были удалены!");
-  };
-
   return (
     <SafeAreaView className="flex-1 bg-gray-200 p-4">
       {/* Выбор даты */}
@@ -50,15 +45,12 @@ const Home = observer(() => {
       <Summary calories={calories} proteins={proteins} fats={fats} carbs={carbs} />
 
       {/* Список продуктов */}
-      <ProductList products={products} />
-
-      {/* Кнопка очистки списка */}
-      <TouchableOpacity 
-        onPress={handleClearProducts} 
-        className="mt-6 p-3 bg-red-500 rounded-lg"
-      >
-        <Text className="text-white text-center font-bold">Очистить список продуктов</Text>
-      </TouchableOpacity>
+      <ProductList
+        products={products}
+        onEdit={(product) => navigation.navigate('product', { mode: 'edit', product })}
+        onDelete={(product) => ProductListStore.removeProduct(product.id)}
+        onSelect={(product) => console.log('Продукт выбран:', product)}
+      />
     </SafeAreaView>
   );
 });

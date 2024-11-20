@@ -29,6 +29,15 @@ class ProductListStore {
         await this.saveProducts();
     }
 
+    // Обновить продукт
+    async updateProduct(updatedProductData) {
+        const index = this.products.findIndex((product) => product.id === updatedProductData.id);
+        if (index !== -1) {
+        this.products[index] = updatedProductData; // Обновляем продукт
+        await this.saveProducts(); // Сохраняем обновленный список
+        }
+    }
+
     // Сохранить все продукты в AsyncStorage
     async saveProducts() {
         try {
@@ -42,6 +51,11 @@ class ProductListStore {
     // Получить список продуктов за выбранную дату
     getProductsByDate(selectedDate) {
         return this.products.filter((product) => product.dateAdded === selectedDate);
+    }
+
+    // Получить список всех продуктов
+    getAllProducts() {
+        return this.products;
     }
 
     // Получить суммарные калории, белки, жиры, углеводы за выбранную дату
