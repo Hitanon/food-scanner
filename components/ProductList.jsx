@@ -4,9 +4,12 @@ import ProductItem from './ProductItem';
 
 const ProductList = ({
   products = [],
-  onSelect = null, // Обработчик выбора
-  onEdit = null, // Обработчик редактирования
-  onDelete = null, // Обработчик удаления
+  isInDiet = false,        // Флаг: продукты в рационе или в общем списке
+  onSelect = null,         // Обработчик выбора продукта
+  selectedProductId = null, // ID выбранного продукта
+  onEdit = null,           // Обработчик редактирования (только для общего списка)
+  onDelete = null,         // Обработчик удаления (только для общего списка)
+  onRemoveFromDiet = null, // Обработчик удаления из рациона
 }) => {
   if (products.length === 0) {
     return (
@@ -23,9 +26,12 @@ const ProductList = ({
         <ProductItem
           key={product.id}
           product={product}
+          isInDiet={isInDiet}
+          isSelected={selectedProductId === product.id} // Проверяем, выбран ли продукт
           onSelect={onSelect}
-          onEdit={onEdit}
-          onDelete={onDelete}
+          onEdit={!isInDiet ? onEdit : null} // "Изменить" только для общего списка
+          onDelete={!isInDiet ? onDelete : null} // "Удалить" только для общего списка
+          onRemoveFromDiet={isInDiet ? onRemoveFromDiet : null} // "Удалить из рациона" только для рациона
         />
       ))}
     </ScrollView>

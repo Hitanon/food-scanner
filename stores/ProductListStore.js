@@ -1,9 +1,11 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Product from "./ProductStore";
+import { v4 as uuidv4 } from 'uuid';
 
 class ProductListStore {
-    products = []; // Массив экземпляров Product
+    products = []; // Массив всех продуктов
+    dietProducts = []; // Массив продуктов в рационе
 
     constructor() {
         makeAutoObservable(this);
@@ -13,28 +15,14 @@ class ProductListStore {
     async initializeStore() {
         try {
             const productsData = await AsyncStorage.getItem("products");
+            const dietProductsData = await AsyncStorage.getItem("dietProducts"); // Загружаем продукты рациона
+
             runInAction(() => {
                 this.products = productsData ? JSON.parse(productsData).map((item) => new Product(item)) : [];
+                this.dietProducts = dietProductsData ? JSON.parse(dietProductsData).map((item) => new Product(item)) : [];
             });
         } catch (error) {
             console.error("Ошибка при инициализации данных:", error);
-        }
-    }
-
-    // Добавить новый продукт с сохранением даты добавления
-    async addProduct(data) {
-        const dateAdded = data.dateAdded || new Date().toISOString().split('T')[0];
-        const newProduct = new Product({ ...data, dateAdded });
-        this.products.push(newProduct);
-        await this.saveProducts();
-    }
-
-    // Обновить продукт
-    async updateProduct(updatedProductData) {
-        const index = this.products.findIndex((product) => product.id === updatedProductData.id);
-        if (index !== -1) {
-        this.products[index] = updatedProductData; // Обновляем продукт
-        await this.saveProducts(); // Сохраняем обновленный список
         }
     }
 
@@ -48,19 +36,99 @@ class ProductListStore {
         }
     }
 
-    // Получить список продуктов за выбранную дату
-    getProductsByDate(selectedDate) {
-        return this.products.filter((product) => product.dateAdded === selectedDate);
+    // Сохранить продукты рациона в AsyncStorage
+    async saveDietProducts() {
+        try {
+            const dietProductsData = this.dietProducts.map((product) => ({ ...product }));
+            await AsyncStorage.setItem("dietProducts", JSON.stringify(dietProductsData));
+        } catch (error) {
+            console.error("Ошибка при сохранении продуктов рациона:", error);
+        }
     }
 
-    // Получить список всех продуктов
+    // Добавить новый продукт
+    async addProduct(data) {
+        const dateAdded = data.dateAdded || new Date().toISOString().split('T')[0];
+        const newProduct = new Product({ ...data, dateAdded });
+        this.products.push(new Product({ ...data, dateAdded, id: uuidv4() }));
+        this.dietProducts.push(new Product({ ...data, dateAdded, id: uuidv4() }));
+        await this.saveProducts();
+        await this.saveDietProducts();
+      }
+
+    // Обновить продукт
+    async updateProduct(updatedProductData) {
+        const dateAdded = updatedProductData.dateAdded || new Date().toISOString().split('T')[0]; // сохраняем дату добавления
+        const productIndex = this.products.findIndex((product) => product.id === updatedProductData.id);
+        const dietProductIndex = this.dietProducts.findIndex((product) => product.id === updatedProductData.id);
+    
+        if (productIndex !== -1) {
+        // Продукт найден в общем списке
+        this.products[productIndex] = { ...updatedProductData, dateAdded };
+        } else if (dietProductIndex !== -1) {
+        // Продукт найден в списке рациона
+        this.dietProducts[dietProductIndex] = { ...updatedProductData, dateAdded };
+        } else {
+        // Продукт не найден в обоих списках
+        console.log('Продукт не найден в списках');
+        return;
+        }
+    
+        await this.saveProducts();
+        await this.saveDietProducts();
+    }
+
+    // Удалить продукт
+    async removeProduct(id) {
+        this.products = this.products.filter((product) => product.id !== id);
+        this.dietProducts = this.dietProducts.filter((product) => product.id !== id); // Удаляем из рациона
+        await this.saveProducts();
+        await this.saveDietProducts();
+    }
+
+    // Получить все продукты
     getAllProducts() {
         return this.products;
     }
 
-    // Получить суммарные калории, белки, жиры, углеводы за выбранную дату
-    getDailySummary(selectedDate) {
-        const productsByDate = this.getProductsByDate(selectedDate);
+    // Методы для работы с рационом:
+
+    // Добавить продукт в рацион
+    async addToDiet(product) {
+        const dietProduct = {
+            ...product,
+            id: uuidv4(), // Уникальный идентификатор для рациона
+        };
+        this.dietProducts.push(dietProduct);
+        await this.saveDietProducts();
+    }
+
+    // Удалить продукт из рациона
+    async removeFromDiet(productId) {
+        this.dietProducts = this.dietProducts.filter((product) => product.id !== productId);
+        await this.saveDietProducts();
+    }
+
+    // Очистить рацион
+    async clearDiet() {
+        this.dietProducts = [];
+        await this.saveDietProducts();
+    }
+
+    // Получить продукты в рационе
+    getDietProducts() {
+        return this.dietProducts;
+    }
+
+    
+    // Получить продукты по дате
+    getDietProductsByDate(selectedDate) {
+        return this.dietProducts.filter((product) => product.dateAdded === selectedDate);
+    }
+
+        // Получить суммарные калории, белки, жиры, углеводы за выбранную дату
+    getDietSummaryByDate(selectedDate) {
+        const productsByDate = this.getDietProductsByDate(selectedDate);
         const summary = {
             calories: 0,
             proteins: 0,
@@ -68,7 +136,7 @@ class ProductListStore {
             carbs: 0,
             weight: 0
         };
-        
+
         productsByDate.forEach((product) => {
             summary.calories += product.calories;
             summary.proteins += product.proteins;
@@ -78,18 +146,6 @@ class ProductListStore {
         });
 
         return summary;
-    }
-
-    // Удалить продукт из дневного рациона и обновить хранилище
-    async removeProduct(id) {
-        this.products = this.products.filter((product) => product.id !== id);
-        await this.saveProducts();
-    }
-
-    // Очистить все данные
-    async clearAllProducts() {
-        this.products = [];
-        await AsyncStorage.removeItem("products");
     }
 }
 

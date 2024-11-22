@@ -1,9 +1,9 @@
-import { useState, useContext } from 'react';
-import { Text, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useContext } from 'react';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import { observer } from 'mobx-react-lite';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ProductContext } from '../../context/ProductContext'; // импортируем контекст
+import { ProductContext } from '../../context/ProductContext';
 import Summary from '../../components/Summary';
 import ProductList from '../../components/ProductList';
 import { useNavigation } from '@react-navigation/native';
@@ -11,11 +11,8 @@ import { useNavigation } from '@react-navigation/native';
 const Home = observer(() => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const navigation = useNavigation();
-
-  // Получаем ProductListStore из контекста
   const { ProductListStore } = useContext(ProductContext);
 
-  // Обработка изменения даты
   const showDatePicker = () => {
     DateTimePickerAndroid.open({
       value: selectedDate,
@@ -24,12 +21,13 @@ const Home = observer(() => {
     });
   };
 
-  // Форматирование выбранной даты
   const formattedDate = selectedDate.toISOString().split('T')[0];
-
-  // Получение продуктов и суммарных значений на выбранную дату
-  const products = ProductListStore.getProductsByDate(formattedDate);
-  const { calories, proteins, fats, carbs } = ProductListStore.getDailySummary(formattedDate);
+  
+  // Получаем продукты из рациона за выбранную дату
+  const dietProducts = ProductListStore.getDietProductsByDate(formattedDate);
+  
+  // Получаем сводку по продуктам в рационе
+  const { calories, proteins, fats, carbs, weight } = ProductListStore.getDietSummaryByDate(formattedDate);
 
   return (
     <SafeAreaView className="flex-1 bg-gray-200 p-4">
@@ -41,16 +39,29 @@ const Home = observer(() => {
         </Text>
       </TouchableOpacity>
 
-      {/* Суммарные значения */}
-      <Summary calories={calories} proteins={proteins} fats={fats} carbs={carbs} />
-
-      {/* Список продуктов */}
-      <ProductList
-        products={products}
-        onEdit={(product) => navigation.navigate('product', { mode: 'edit', product })}
-        onDelete={(product) => ProductListStore.removeProduct(product.id)}
-        onSelect={(product) => console.log('Продукт выбран:', product)}
+      {/* Сводка по рациону */}
+      <Summary
+        calories={calories}
+        proteins={proteins}
+        fats={fats}
+        carbs={carbs}
+        weight={weight}
       />
+
+      {/* Список продуктов в рационе */}
+      <View className="flex-1">
+        {dietProducts.length > 0 ? (
+          <ProductList
+            products={dietProducts}
+            onEdit={(product) => navigation.navigate('product', { mode: 'edit', product })}
+            onDelete={(product) => ProductListStore.removeFromDiet(product.id, formattedDate)}
+          />
+        ) : (
+          <Text className="text-center text-gray-600 mt-4">
+            Продукты для выбранной даты отсутствуют.
+          </Text>
+        )}
+      </View>
     </SafeAreaView>
   );
 });

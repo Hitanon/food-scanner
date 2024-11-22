@@ -6,6 +6,7 @@ import Product from "../stores/ProductStore";
 export const ProductContext = createContext();
 
 export const ProductProvider = observer(({ children }) => {
+  // Создаем или используем существующий продукт для выбранного
   const selectedProduct = new Product({
     id: "",
     name: "",
@@ -18,7 +19,7 @@ export const ProductProvider = observer(({ children }) => {
   });
 
   return (
-    <ProductContext.Provider value={{ ProductListStore: ProductListStore, selectedProduct }}>
+    <ProductContext.Provider value={{ ProductListStore, selectedProduct }}>
       {children}
     </ProductContext.Provider>
   );

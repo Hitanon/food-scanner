@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Alert } from 'react-native';
 import CustomButton from './CustomButton';
+import { v4 as uuidv4 } from 'uuid';
 
 const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
   const [name, setName] = useState('');
@@ -46,7 +47,7 @@ const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
     }
 
     const productData = {
-      id: initialProduct?.id || Math.random().toString(),
+      id: initialProduct?.id || uuidv4(),
       name,
       calories: adjustedValues.calories,
       proteins: adjustedValues.proteins,
@@ -130,7 +131,8 @@ const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
 
       {/* Отображение пересчитанных значений */}
       <View className="my-5">
-        <Text className="text-base text-gray-700">🔥 Калории на вес: {adjustedValues.calories.toFixed(2)}</Text>
+        <Text className="text-base text-gray-700">На вес: {weight}</Text>
+        <Text className="text-base text-gray-700">Калории 🔥: {adjustedValues.calories.toFixed(2)}</Text>
         <Text className="text-base text-gray-700">Белки: {adjustedValues.proteins.toFixed(2)}</Text>
         <Text className="text-base text-gray-700">Жиры: {adjustedValues.fats.toFixed(2)}</Text>
         <Text className="text-base text-gray-700">Углеводы: {adjustedValues.carbs.toFixed(2)}</Text>
