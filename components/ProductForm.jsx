@@ -25,17 +25,17 @@ const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
   // Инициализация формы при редактировании или сканировании
   useEffect(() => {
     if ((mode === 'edit' || mode === 'scan') && initialProduct) {
-      // const factor = initialProduct.weight / 100;
+      // Если режим редактирования, масштабируем значения на 100 грамм
+      const factor = mode === 'edit' ? initialProduct.weight / 100 : 1;
       setForm({
         name: initialProduct.name,
-        calories: (initialProduct.calories).toFixed(2),
-        proteins: (initialProduct.proteins).toFixed(2),
-        fats: (initialProduct.fats).toFixed(2),
-        carbs: (initialProduct.carbs).toFixed(2),
+        calories: (initialProduct.calories / factor).toFixed(2),
+        proteins: (initialProduct.proteins / factor).toFixed(2),
+        fats: (initialProduct.fats / factor).toFixed(2),
+        carbs: (initialProduct.carbs / factor).toFixed(2),
         weight: String(initialProduct.weight),
         imageLink: initialProduct.imageLink || '',
       });
-      
     }
   }, [mode, initialProduct]);
 
