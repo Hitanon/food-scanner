@@ -1,12 +1,21 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useCallback } from 'react';
 import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProductContext } from '../../context/ProductContext';
 import { BarChart } from 'react-native-chart-kit';
+import { useFocusEffect } from '@react-navigation/native';
 
 const Statistics = () => {
     const { ProductListStore } = useContext(ProductContext);
     const [activeTab, setActiveTab] = useState('calories'); // Добавили 'calories' как дефолтный активный таб
+    const [chartData, setChartData] = useState(null); // Стейт для данных графика
+
+    // Получаем ширину экрана
+    const screenWidth = Dimensions.get('window').width;
+
+    // Вычисляем ширину графика и barPercentage на основе ширины экрана
+    const chartWidth = screenWidth - 30; // Уменьшаем на 30 для отступов
+    const barPercentage = screenWidth > 360 ? 0.4 : 0.5; // Меняем barPercentage для маленьких экранов
 
     // Формирование массива последних 7 дней
     const dates = Array.from({ length: 7 }, (_, i) => {
@@ -15,27 +24,33 @@ const Statistics = () => {
         return date.toISOString().split('T')[0];
     }).reverse();
 
-    // Получение данных для графиков
-    const data = dates.map((date) => ProductListStore.getDietSummaryByDate(date));
+    // Функция для получения данных для графика
+    const getChartData = () => {
+        const data = dates.map((date) => ProductListStore.getDietSummaryByDate(date));
 
-    // Данные для активного таба
-    const chartData = {
-        labels: dates.map((date) => date.split('-').slice(1).join('/')), // Формат: MM/DD
-        datasets: [
-            {
-                data:
-                    activeTab === 'calories'
-                        ? data.map((summary) => summary.calories)
-                        : activeTab === 'proteins'
-                            ? data.map((summary) => summary.proteins)
-                            : activeTab === 'fats'
-                                ? data.map((summary) => summary.fats)
-                                : data.map((summary) => summary.carbs), // Для углеводов
-            },
-        ],
+        return {
+            labels: dates.map((date) => date.split('-').slice(1).join('/')),
+            datasets: [
+                {
+                    data:
+                        activeTab === 'calories'
+                            ? data.map((summary) => summary.calories)
+                            : activeTab === 'proteins'
+                                ? data.map((summary) => summary.proteins)
+                                : activeTab === 'fats'
+                                    ? data.map((summary) => summary.fats)
+                                    : data.map((summary) => summary.carbs),
+                },
+            ],
+        };
     };
 
-    const screenWidth = Dimensions.get('window').width;
+    // useFocusEffect для обновления данных при переходе на экран
+    useFocusEffect(
+        useCallback(() => {
+            setChartData(getChartData()); // Обновляем данные при фокусировке на экране
+        }, [activeTab]) // Зависимость от активной вкладки
+    );
 
     return (
         <SafeAreaView className="flex-1 py-5 bg-gray-200">
@@ -86,23 +101,27 @@ const Statistics = () => {
                                 ? 'График жиров'
                                 : 'График углеводов'}
                 </Text>
-                <BarChart
-                    data={chartData}
-                    width={screenWidth - 50} // Отступы
-                    height={220}
-                    chartConfig={{
-                        backgroundColor: '#ffffff',
-                        backgroundGradientFrom: '#ffffff',
-                        backgroundGradientTo: '#ffffff',
-                        decimalPlaces: 1,
-                        color: (opacity = 1) => `rgba(80, 149, 5, ${opacity})`,
-                        labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-                        barPercentage: 0.75,
-                        style: {
-                            borderRadius: 16,
-                        },
-                    }}
-                />
+                {chartData && (
+                    <BarChart
+                        data={chartData}
+                        width={chartWidth}
+                        height={220}
+                        chartConfig={{
+                            backgroundColor: '#ffffff',
+                            backgroundGradientFrom: '#ffffff',
+                            backgroundGradientTo: '#ffffff',
+                            decimalPlaces: 1,
+                            color: (opacity = 1) => `rgba(80, 149, 5, ${opacity})`,
+                            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+                            barPercentage: barPercentage,
+                            style: {
+                                borderRadius: 16,
+                                marginLeft: 10, // Отступ слева
+                                marginRight: 10, // Отступ справа
+                            },
+                        }}
+                    />
+                )}
             </View>
         </SafeAreaView>
     );
