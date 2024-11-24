@@ -9,7 +9,7 @@ const SmallCustomButton = ({ title, handlePress, bgColor, textColor, borderColor
         className={`px-3 py-1 rounded-lg ${bgColor} ${textColor} ${borderColor || ''}`}
         activeOpacity={0.8}
         >
-        <Text className={`text-sm font-semibold ${textColor}`}>{title}</Text>
+        <Text className={`text-sm font-psemibold ${textColor}`}>{title}</Text>
         </TouchableOpacity>
     </View>
   );

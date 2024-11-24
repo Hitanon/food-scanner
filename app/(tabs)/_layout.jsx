@@ -19,9 +19,9 @@ const TabLayout = () => {
         },
       }}
     >
-      <Tabs.Screen 
-        name="index" 
-        options={{ 
+      <Tabs.Screen
+        name="index"
+        options={{
           title: "Главная",
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
@@ -31,11 +31,11 @@ const TabLayout = () => {
               focused={focused}
             />
           ),
-        }} 
+        }}
       />
-      <Tabs.Screen 
-        name="addProduct" 
-        options={{ 
+      <Tabs.Screen
+        name="addProduct"
+        options={{
           title: "Добавить продукт",
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
@@ -45,11 +45,11 @@ const TabLayout = () => {
               focused={focused}
             />
           ),
-        }} 
+        }}
       />
-      <Tabs.Screen 
-        name="products" 
-        options={{ 
+      <Tabs.Screen
+        name="products"
+        options={{
           title: "Список продуктов",
           tabBarIcon: ({ color, focused }) => (
             <TabIcon
@@ -59,7 +59,21 @@ const TabLayout = () => {
               focused={focused}
             />
           ),
-        }} 
+        }}
+      />
+      <Tabs.Screen
+        name="statistics"
+        options={{
+          title: "Отчеты",
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon
+              icon={icons.stats}
+              color={color}
+              name="Отчеты"
+              focused={focused}
+            />
+          ),
+        }}
       />
     </Tabs>
   );

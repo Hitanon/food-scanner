@@ -1,60 +1,97 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Alert } from 'react-native';
+import { View, Text, Alert } from 'react-native';
 import CustomButton from './CustomButton';
-import { v4 as uuidv4 } from 'uuid';
+import InputField from './InputField';
+import ImagePickerField from './ImagePickerField';
 
 const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
-  const [name, setName] = useState('');
-  const [calories, setCalories] = useState('');
-  const [proteins, setProteins] = useState('');
-  const [fats, setFats] = useState('');
-  const [carbs, setCarbs] = useState('');
-  const [weight, setWeight] = useState('');
-  const [adjustedValues, setAdjustedValues] = useState({ calories: 0, proteins: 0, fats: 0, carbs: 0 });
+  const [form, setForm] = useState({
+    name: '',
+    calories: '',
+    proteins: '',
+    fats: '',
+    carbs: '',
+    weight: '',
+    imageLink: '',
+  });
 
+  const [adjustedValues, setAdjustedValues] = useState({
+    calories: 0,
+    proteins: 0,
+    fats: 0,
+    carbs: 0,
+  });
+
+  // Инициализация формы при редактировании или сканировании
   useEffect(() => {
-    if (mode === 'edit' && initialProduct) {
-      // Преобразуем значения обратно к "на 100 граммов"
+    if ((mode === 'edit' || mode === 'scan') && initialProduct) {
       const factor = initialProduct.weight / 100;
-      setName(initialProduct.name);
-      setCalories((initialProduct.calories / factor).toFixed(2));
-      setProteins((initialProduct.proteins / factor).toFixed(2));
-      setFats((initialProduct.fats / factor).toFixed(2));
-      setCarbs((initialProduct.carbs / factor).toFixed(2));
-      setWeight(String(initialProduct.weight));
+      setForm({
+        name: initialProduct.name,
+        calories: (initialProduct.calories / factor).toFixed(2),
+        proteins: (initialProduct.proteins / factor).toFixed(2),
+        fats: (initialProduct.fats / factor).toFixed(2),
+        carbs: (initialProduct.carbs / factor).toFixed(2),
+        weight: String(initialProduct.weight),
+        imageLink: initialProduct.imageLink || '',
+      });
     }
   }, [mode, initialProduct]);
 
+  // Пересчет значений на основе веса
   useEffect(() => {
-    // Пересчет значений на основе веса
     recalculateAdjustedValues();
-  }, [calories, proteins, fats, carbs, weight]);
+  }, [form.calories, form.proteins, form.fats, form.carbs, form.weight]);
 
   const recalculateAdjustedValues = () => {
-    const multiplier = parseFloat(weight) / 100 || 0;
+    const multiplier = parseFloat(form.weight) / 100 || 0;
     setAdjustedValues({
-      calories: parseFloat(calories) * multiplier || 0,
-      proteins: parseFloat(proteins) * multiplier || 0,
-      fats: parseFloat(fats) * multiplier || 0,
-      carbs: parseFloat(carbs) * multiplier || 0,
+      calories: parseFloat(form.calories) * multiplier || 0,
+      proteins: parseFloat(form.proteins) * multiplier || 0,
+      fats: parseFloat(form.fats) * multiplier || 0,
+      carbs: parseFloat(form.carbs) * multiplier || 0,
     });
   };
 
+  const handleInputChange = (field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
+
   const handleSave = () => {
-    if (!name || !calories || !proteins || !fats || !carbs || !weight) {
-      Alert.alert('Ошибка', 'Пожалуйста, заполните все поля.');
+    const { name, weight, imageLink } = form;
+
+    if (!name || !form.calories || !form.proteins || !form.fats || !form.carbs || !weight) {
+      Alert.alert('⚠️Ошибка', 'Пожалуйста, заполните все поля.');
+      return;
+    }
+
+    // Проверка изменений при редактировании
+    if (
+      mode === 'edit' &&
+      name === initialProduct.name &&
+      adjustedValues.calories === initialProduct.calories &&
+      adjustedValues.proteins === initialProduct.proteins &&
+      adjustedValues.fats === initialProduct.fats &&
+      adjustedValues.carbs === initialProduct.carbs &&
+      parseFloat(weight) === initialProduct.weight &&
+      imageLink === initialProduct.imageLink
+    ) {
+      Alert.alert('⚠️Ошибка', 'Вы не внесли изменений.');
       return;
     }
 
     const productData = {
-      id: initialProduct?.id || uuidv4(),
+      id: initialProduct?.id || '',
       name,
       calories: adjustedValues.calories,
       proteins: adjustedValues.proteins,
       fats: adjustedValues.fats,
       carbs: adjustedValues.carbs,
       weight: parseFloat(weight),
-      image: initialProduct?.image || 'https://via.placeholder.com/150', // Пример изображения
+      imageLink,
     };
 
     onSubmit(productData);
@@ -62,82 +99,70 @@ const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
 
   return (
     <View>
-      <View className="mb-5">
-        <Text className="text-base text-gray-700 mb-2">Название продукта</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите название"
-          value={name}
-          onChangeText={setName}
-        />
-      </View>
+      {/* Выбор изображения */}
+      <ImagePickerField
+        initialImage={form.imageLink}
+        onImageSelected={(uri) => handleInputChange('imageLink', uri)}
+      />
 
+      {/* Поля ввода */}
+      <InputField
+        label="Название продукта"
+        placeholder="Введите название"
+        value={form.name}
+        onChangeText={(value) => handleInputChange('name', value)}
+      />
       <Text className="text-sm text-gray-600 mb-2">Введите для 100гр продукта:</Text>
+      <InputField
+        label="🔥 ккал"
+        placeholder="Введите калории"
+        value={form.calories}
+        onChangeText={(value) => handleInputChange('calories', value)}
+        keyboardType="numeric"
+      />
+      <InputField
+        label="Белки"
+        placeholder="Введите белки"
+        value={form.proteins}
+        onChangeText={(value) => handleInputChange('proteins', value)}
+        keyboardType="numeric"
+        labelStyles="text-green-700"
+      />
+      <InputField
+        label="Жиры"
+        placeholder="Введите жиры"
+        value={form.fats}
+        onChangeText={(value) => handleInputChange('fats', value)}
+        keyboardType="numeric"
+        labelStyles="text-orange-700"
+      />
+      <InputField
+        label="Углеводы"
+        placeholder="Введите углеводы"
+        value={form.carbs}
+        onChangeText={(value) => handleInputChange('carbs', value)}
+        keyboardType="numeric"
+        labelStyles="text-blue-700"
+      />
+      <InputField
+        label="Вес (гр.)"
+        placeholder="Введите вес"
+        value={form.weight}
+        onChangeText={(value) => handleInputChange('weight', value)}
+        keyboardType="numeric"
+        labelStyles="text-gray-700"
+      />
 
-      <View className="mb-5">
-        <Text className="text-base text-gray-700 mb-2">🔥 ккал</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите калории"
-          keyboardType="numeric"
-          value={calories}
-          onChangeText={setCalories}
-        />
-      </View>
-
-      <View className="mb-5">
-        <Text className="text-base text-green-700 mb-2">Белки</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите белки"
-          keyboardType="numeric"
-          value={proteins}
-          onChangeText={setProteins}
-        />
-      </View>
-
-      <View className="mb-5">
-        <Text className="text-base text-orange-700 mb-2">Жиры</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите жиры"
-          keyboardType="numeric"
-          value={fats}
-          onChangeText={setFats}
-        />
-      </View>
-
-      <View className="mb-5">
-        <Text className="text-base text-blue-700 mb-2">Углеводы</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите углеводы"
-          keyboardType="numeric"
-          value={carbs}
-          onChangeText={setCarbs}
-        />
-      </View>
-
-      <View className="mb-5">
-        <Text className="text-base text-gray-700 mb-2">Вес (гр.)</Text>
-        <TextInput
-          className="bg-white p-3 rounded-lg text-base"
-          placeholder="Введите вес"
-          keyboardType="numeric"
-          value={weight}
-          onChangeText={setWeight}
-        />
-      </View>
-
-      {/* Отображение пересчитанных значений */}
+      {/* Результаты пересчета */}
       <View className="my-5">
-        <Text className="text-base text-gray-700">На вес: {weight}</Text>
+        <Text className="text-base text-gray-700">На вес: {form.weight}</Text>
         <Text className="text-base text-gray-700">Калории 🔥: {adjustedValues.calories.toFixed(2)}</Text>
         <Text className="text-base text-gray-700">Белки: {adjustedValues.proteins.toFixed(2)}</Text>
         <Text className="text-base text-gray-700">Жиры: {adjustedValues.fats.toFixed(2)}</Text>
         <Text className="text-base text-gray-700">Углеводы: {adjustedValues.carbs.toFixed(2)}</Text>
       </View>
 
+      {/* Кнопка сохранения */}
       <CustomButton
         title={mode === 'edit' ? 'Сохранить изменения' : 'Создать продукт'}
         handlePress={handleSave}

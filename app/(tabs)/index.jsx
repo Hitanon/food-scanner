@@ -7,11 +7,12 @@ import { ProductContext } from '../../context/ProductContext';
 import Summary from '../../components/Summary';
 import ProductList from '../../components/ProductList';
 import { useNavigation } from '@react-navigation/native';
+import { round } from '../../utils/functions';
 
 const Home = observer(() => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const navigation = useNavigation();
-  const { ProductListStore } = useContext(ProductContext);
+  const { ProductListStore, currentProduct } = useContext(ProductContext);
 
   const showDatePicker = () => {
     DateTimePickerAndroid.open({
@@ -22,10 +23,10 @@ const Home = observer(() => {
   };
 
   const formattedDate = selectedDate.toISOString().split('T')[0];
-  
+
   // Получаем продукты из рациона за выбранную дату
   const dietProducts = ProductListStore.getDietProductsByDate(formattedDate);
-  
+
   // Получаем сводку по продуктам в рационе
   const { calories, proteins, fats, carbs, weight } = ProductListStore.getDietSummaryByDate(formattedDate);
 
@@ -41,11 +42,11 @@ const Home = observer(() => {
 
       {/* Сводка по рациону */}
       <Summary
-        calories={calories}
-        proteins={proteins}
-        fats={fats}
-        carbs={carbs}
-        weight={weight}
+        calories={round(calories)}
+        proteins={round(proteins)}
+        fats={round(fats)}
+        carbs={round(carbs)}
+        weight={round(weight)}
       />
 
       {/* Список продуктов в рационе */}
@@ -53,12 +54,15 @@ const Home = observer(() => {
         {dietProducts.length > 0 ? (
           <ProductList
             products={dietProducts}
-            onEdit={(product) => navigation.navigate('product', { mode: 'edit', product })}
+            onEdit={(product) => {
+              currentProduct.updateProduct(product);
+              navigation.navigate('product', { mode: 'edit' })
+            }}
             onDelete={(product) => ProductListStore.removeFromDiet(product.id, formattedDate)}
           />
         ) : (
           <Text className="text-center text-gray-600 mt-4">
-            Продукты для выбранной даты отсутствуют.
+            ❗ Продукты для выбранной даты отсутствуют.
           </Text>
         )}
       </View>

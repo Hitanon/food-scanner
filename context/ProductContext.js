@@ -7,19 +7,19 @@ export const ProductContext = createContext();
 
 export const ProductProvider = observer(({ children }) => {
   // Создаем или используем существующий продукт для выбранного
-  const selectedProduct = new Product({
-    id: "",
+  const currentProduct = new Product({
     name: "",
     calories: 0,
     proteins: 0,
     fats: 0,
     carbs: 0,
     weight: 0,
+    imageLink: "",
     dateAdded: "",
   });
 
   return (
-    <ProductContext.Provider value={{ ProductListStore, selectedProduct }}>
+    <ProductContext.Provider value={{ ProductListStore, currentProduct }}>
       {children}
     </ProductContext.Provider>
   );

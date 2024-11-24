@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "scanner",
+    "name": "Scanner",
     "slug": "scanner",
     "scheme": "scanner",
     "version": "1.0.0",
@@ -20,7 +20,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.pmi.food-scanner"
+      "package": "com.hitanon.scanner",
+      "permissions": [
+        "android.permission.CAMERA"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -35,6 +38,14 @@
           "recordAudioAndroid": false
         }
       ]
-    ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "2cc5e721-b78c-4dbc-aab8-cb4bd05ec219"
+      }
+    }
   }
 }

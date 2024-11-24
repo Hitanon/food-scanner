@@ -4,10 +4,11 @@ import { observer } from 'mobx-react-lite';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProductContext } from '../../context/ProductContext';
 import ProductItem from '../../components/ProductItem';
+import CustomButton from '../../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
 
 const Products = observer(() => {
-  const { ProductListStore } = useContext(ProductContext);
+  const { ProductListStore, currentProduct } = useContext(ProductContext);
   const [selectedProducts, setSelectedProducts] = useState([]);
   const navigation = useNavigation();
 
@@ -21,7 +22,7 @@ const Products = observer(() => {
 
   const handleAddSelectedToDiet = () => {
     if (selectedProducts.length === 0) {
-      Alert.alert('Ошибка', 'Выберите хотя бы один продукт для добавления в рацион.');
+      Alert.alert('⚠️Ошибка', 'Выберите хотя бы один продукт для добавления в рацион.');
       return;
     }
 
@@ -29,12 +30,14 @@ const Products = observer(() => {
       ProductListStore.addToDiet(product);
     });
 
-    Alert.alert('Продукты добавлены', `${selectedProducts.length} продукт(ов) добавлено в рацион!`);
+    Alert.alert('✅️Продукты добавлены', `${selectedProducts.length} продукт(ов) добавлено в рацион!`);
     setSelectedProducts([]);
+    navigation.navigate('index');
   };
 
   const handleEditProduct = (product) => {
-    navigation.navigate('product', { mode: 'edit', product });
+    currentProduct.updateProduct(product);
+    navigation.navigate('product', { mode: 'edit'});
   };
 
   const handleDeleteProduct = (product) => {
@@ -64,9 +67,12 @@ const Products = observer(() => {
         ))}
       </ScrollView>
 
-      <TouchableOpacity onPress={handleAddSelectedToDiet} className="m-4 p-4 bg-green-500 rounded-lg">
-        <Text className="text-white text-center font-bold">Добавить в рацион</Text>
-      </TouchableOpacity>
+      <CustomButton
+        title="Добавить в рацион"
+        handlePress={handleAddSelectedToDiet}
+        containerStyles="bg-primary m-4"
+        textStyles="text-white font-pmedium"
+      />
     </SafeAreaView>
   );
 });

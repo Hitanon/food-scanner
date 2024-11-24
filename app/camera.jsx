@@ -7,8 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProductContext } from "../context/ProductContext";
 import useProductData from '../hooks/useProductData';
 import LoadingOverlay from '../components/LoadingOverlay';
+import CustomButton from '../components/CustomButton';
 
 import { useRouter } from 'expo-router';
+import { useNavigation } from 'expo-router';
 
 // Header Component
 const Header = ({ onBack }) => (
@@ -27,30 +29,16 @@ const CameraViewOverlay = () => (
   </View>
 );
 
-// Product Alert Component
-const showProductAlert = (product, ean, onClose) => {
-  Alert.alert(
-    "Продукт отсканирован",
-    `EAN: ${ean}\n\n` +
-    `Название: ${product.name}\n` +
-    `Калории: ${product.calories}\n` +
-    `Белки: ${product.proteins}\n` +
-    `Жиры: ${product.fats}\n` +
-    `Углеводы: ${product.carbs}\n` +
-    `Вес: ${product.weight} г\n` +
-    `Изображение: ${product.imageLink}`,
-    [{ text: "OK", onPress: onClose }]
-  );
-};
-
 export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [scanned, setScanned] = useState(false);
   const [ean, setEan] = useState(null);
 
-  const { selectedProduct } = useContext(ProductContext);
+  const { currentProduct } = useContext(ProductContext);
   const router = useRouter();
   const { productData, loading, error, fetchProductData } = useProductData();
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     if (ean) {
@@ -60,17 +48,17 @@ export default function CameraScreen() {
 
   useEffect(() => {
     if (productData && ean) {
-      selectedProduct.updateProduct(productData);
-      showProductAlert(selectedProduct, ean, () => {
-        setEan(null);
-        setScanned(false);
-      });
+      currentProduct.clear();
+      currentProduct.updateProduct(productData);
+      navigation.navigate('product', { mode: 'scan' });
+      setEan(null);
+      setScanned(false);
     } else if (ean && !loading && productData === null) {
-      Alert.alert("Продукт не найден", `EAN: ${ean} нет в базе данных`, [
+      Alert.alert("⚠️Продукт не найден", `EAN: ${ean} нет в базе данных`, [
         { text: "OK", onPress: () => { setEan(null); setScanned(false); } }
       ]);
     } else if (error) {
-      Alert.alert("Ошибка загрузки данных", `${error}`, [
+      Alert.alert("⚠️Ошибка загрузки данных", `${error}`, [
         { text: "OK", onPress: () => { setEan(null); setScanned(false); } }
       ]);
     }
@@ -87,8 +75,14 @@ export default function CameraScreen() {
   if (!permission.granted) {
     return (
       <SafeAreaView className="flex-1 justify-center items-center">
-        <Text className="text-center pb-4">Нам нужно ваше разрешение для доступа к камере</Text>
-        <Button onPress={requestPermission} title="Предоставить разрешение" />
+        <Text className="text-center text-lg pb-2">Нам нужно ваше разрешение для доступа к камере</Text>
+        <CustomButton
+          title="Предоставить разрешение"
+          handlePress={requestPermission}
+          containerStyles="w-[90%] bg-primary m-4"
+          textStyles="text-white font-pmedium"
+        />
+        <CustomButton></CustomButton>
       </SafeAreaView>
     );
   }

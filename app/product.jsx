@@ -15,43 +15,46 @@ import { icons } from '../constants';
 import { ProductContext } from '../context/ProductContext';
 
 const Product = () => {
-  const { ProductListStore } = useContext(ProductContext);
+  const { ProductListStore, currentProduct: product } = useContext(ProductContext);
   const navigation = useNavigation();
   const route = useRoute();
 
-  const { mode = 'create', product } = route.params || {};
+  const { mode = 'create' } = route.params || {};
   const [loading, setLoading] = useState(false);
 
   // Функция для сохранения или обновления продукта
   const handleSave = async (productData) => {
-  setLoading(true);
-  try {
-    if (mode === 'edit') {
-      // Если редактируем, обновляем продукт
-      await ProductListStore.updateProduct(productData);
-      Alert.alert('Успех', 'Продукт успешно обновлен!');
-    } else {
-      // Или создаем новый продукт
-      await ProductListStore.addProduct(productData);
-      Alert.alert('Успех', 'Продукт успешно добавлен!');
-    }
-    
-    // Навигация после сохранения
-    navigation.goBack(); // Переходим назад после сохранения
-  } catch (error) {
-    Alert.alert('Ошибка', 'Не удалось сохранить продукт.');
-    console.error(error);
-  } finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      if (mode === 'edit') {
+        // Если редактируем, обновляем продукт
+        await ProductListStore.updateProduct(productData);
+        Alert.alert('✅️Успех', 'Продукт успешно обновлен!');
+      } else {
+        // Или создаем новый продукт
+        await ProductListStore.addProduct(productData);
+        Alert.alert('✅️Успех', 'Продукт успешно добавлен!');
+      }
 
-  useEffect(() => {
-  }, [mode, product]);
+      // Навигация после сохранения
+      if (['scan', 'create'].includes(mode)) {
+        navigation.navigate("products");
+      }
+      else {
+        navigation.goBack();
+      }
+
+    } catch (error) {
+      Alert.alert('⚠️Ошибка', 'Не удалось сохранить продукт.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView className="flex-1">
-      
+
       <View className="mb-5">
         <View className="flex-row items-center justify-center">
           <TouchableOpacity
