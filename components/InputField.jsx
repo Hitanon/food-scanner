@@ -10,7 +10,24 @@ const InputField = ({
   containerStyles = '',
   inputStyles = '',
   labelStyles = '',
+  type = 'text',
 }) => {
+  const handleInputChange = (text) => {
+    if (type === 'number') {
+      // Разрешить только положительные числа с точкой или запятой
+      let validatedText = text.replace(/[^0-9.,]/g, '');
+      validatedText = validatedText.replace(',', '.'); 
+      
+      const parts = validatedText.split('.');
+      if (parts.length > 2) {
+        return; 
+      }
+      onChangeText(validatedText);
+    } else {
+      onChangeText(text);
+    }
+  };
+
   return (
     <View className={`mb-5 ${containerStyles}`}>
       {label && <Text className={`text-base mb-2 ${labelStyles}`}>{label}</Text>}
@@ -18,8 +35,8 @@ const InputField = ({
         className={`bg-white p-3 rounded-lg text-base ${inputStyles}`}
         placeholder={placeholder}
         value={value}
-        onChangeText={onChangeText}
-        keyboardType={keyboardType}
+        onChangeText={handleInputChange}
+        keyboardType={type === 'number' ? 'numeric' : keyboardType}
       />
     </View>
   );

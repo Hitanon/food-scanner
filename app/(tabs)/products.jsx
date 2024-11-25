@@ -42,6 +42,7 @@ const Products = observer(() => {
 
   const handleDeleteProduct = (product) => {
     ProductListStore.removeProduct(product.id);
+    setSelectedProducts([]);
   };
 
   const products = ProductListStore.getAllProducts();

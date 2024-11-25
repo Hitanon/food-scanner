@@ -5,7 +5,7 @@ import "../global.css";
 import { useEffect } from 'react';
 import { ProductProvider } from '../context/ProductContext';
 
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync(); // Удерживаем Splash Screen
 
 const RootLayout = () => {
   const [fontsLoaded, error] = useFonts({
@@ -17,8 +17,20 @@ const RootLayout = () => {
   });
 
   useEffect(() => {
-    if (error) throw error;
-    if (fontsLoaded) SplashScreen.hideAsync();
+    const prepare = async () => {
+      try {
+        if (error) throw error;
+
+        if (fontsLoaded) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+          SplashScreen.hideAsync();
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    prepare();
   }, [fontsLoaded, error]);
 
   if (!fontsLoaded && !error) return null;

@@ -120,6 +120,7 @@ const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
         value={form.calories}
         onChangeText={(value) => handleInputChange('calories', value)}
         keyboardType="numeric"
+        type="number"
       />
       <InputField
         label="Белки"
@@ -128,6 +129,7 @@ const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
         onChangeText={(value) => handleInputChange('proteins', value)}
         keyboardType="numeric"
         labelStyles="text-green-700"
+        type="number"
       />
       <InputField
         label="Жиры"
@@ -136,6 +138,7 @@ const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
         onChangeText={(value) => handleInputChange('fats', value)}
         keyboardType="numeric"
         labelStyles="text-orange-700"
+        type="number"
       />
       <InputField
         label="Углеводы"
@@ -144,6 +147,7 @@ const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
         onChangeText={(value) => handleInputChange('carbs', value)}
         keyboardType="numeric"
         labelStyles="text-blue-700"
+        type="number"
       />
       <InputField
         label="Вес (гр.)"
@@ -152,6 +156,7 @@ const ProductForm = ({ mode = 'create', initialProduct = null, onSubmit }) => {
         onChangeText={(value) => handleInputChange('weight', value)}
         keyboardType="numeric"
         labelStyles="text-gray-700"
+        type="number"
       />
 
       {/* Результаты пересчета */}
