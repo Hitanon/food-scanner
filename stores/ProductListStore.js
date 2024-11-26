@@ -51,24 +51,22 @@ class ProductListStore {
 
     // Добавить новый продукт
     async addProduct(data) {
-        const dateAdded = data.dateAdded || new Date().toISOString().split("T")[0];
-        const newProduct = new Product({ ...data, dateAdded });
+        const newProduct = new Product({ ...data });
         this.products.push(newProduct);
         await this.saveProducts();
     }
 
     // Обновить продукт
     async updateProduct(updatedProductData) {
-        const dateAdded = updatedProductData.dateAdded || new Date().toISOString().split("T")[0]; // сохраняем дату добавления
         const productIndex = this.products.findIndex((product) => product.id === updatedProductData.id);
         const dietProductIndex = this.dietProducts.findIndex((product) => product.id === updatedProductData.id);
 
         if (productIndex !== -1) {
             // Продукт найден в общем списке
-            this.products[productIndex] = { ...updatedProductData, dateAdded };
+            this.products[productIndex] = { ...updatedProductData };
         } else if (dietProductIndex !== -1) {
             // Продукт найден в списке рациона
-            this.dietProducts[dietProductIndex] = { ...updatedProductData, dateAdded };
+            this.dietProducts[dietProductIndex] = { ...updatedProductData, dateAdded: this.dietProducts[dietProductIndex].dateAdded };
         } else {
             // Продукт не найден в обоих списках
             console.log("Продукт не найден в списках");
@@ -96,9 +94,10 @@ class ProductListStore {
 
     // Добавить продукт в рацион
     async addToDiet(product) {
+        const currentDate = new Date().toISOString().split("T")[0];
         const dietProduct = new Product({
             ...product,
-            dateAdded: product.dateAdded || new Date().toISOString().split("T")[0],
+            dateAdded: currentDate,
         });
         this.dietProducts.push(dietProduct);
         await this.saveDietProducts();
